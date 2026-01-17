@@ -1,98 +1,79 @@
 import { ContractAnalysis } from '@/types/contracts';
-import { supabase } from '@/integrations/supabase/client';
+
+const API_URL = 'https://api.featherless.ai/v1/chat/completions';
+// NOTE: Cette clé doit être remplacée par votre vraie clé API
+const API_KEY = 'REMPLACER_PAR_MA_CLE';
 
 export async function analyzeContract(contractText: string): Promise<ContractAnalysis> {
-  console.log('Calling analyze-contract edge function...');
-  
-  const { data, error } = await supabase.functions.invoke('analyze-contract', {
-    body: { contractText }
+  const response = await fetch(API_URL, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${API_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      model: 'Qwen/Qwen3-32B',
+      messages: [
+        {
+          role: 'system',
+          content: `Tu es un expert juridique français. Analyse ce contrat et retourne UNIQUEMENT du JSON :
+{
+  "score": <0-100>,
+  "verdict": "<SIGNER|NÉGOCIER|REFUSER>",
+  "type": "<CDI|CDD|Bail|Assurance|Autre>",
+  "resume": "<2 phrases>",
+  "clauses": [
+    {
+      "texte": "<extrait>",
+      "risque": "<ÉLEVÉ|MOYEN|FAIBLE>",
+      "probleme": "<explication simple>",
+      "conseil": "<action recommandée>"
+    }
+  ]
+}`
+        },
+        { role: 'user', content: contractText }
+      ],
+      temperature: 0.1,
+      max_tokens: 3000
+    })
   });
   
-  if (error) {
-    console.error('Edge function error:', error);
-    throw new Error(error.message || 'Erreur lors de l\'analyse');
+  if (!response.ok) {
+    throw new Error(`API Error: ${response.status}`);
   }
   
-  if (data.error) {
-    console.error('API error:', data.error);
-    throw new Error(data.error);
-  }
-  
-  // Add IDs to clauses
-  const analysis: ContractAnalysis = {
-    ...data,
-    clauses: (data.clauses || []).map((clause: any) => ({
-      ...clause,
-      id: crypto.randomUUID()
-    }))
-  };
-  
-  return analysis;
+  const data = await response.json();
+  return JSON.parse(data.choices[0].message.content);
 }
 
 export async function askQuestion(question: string, contractContext: string): Promise<string> {
-  console.log('Calling chat-contract edge function...');
-  
-  const { data, error } = await supabase.functions.invoke('chat-contract', {
-    body: { question, contractContext }
+  const response = await fetch(API_URL, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${API_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      model: 'Qwen/Qwen3-8B',
+      messages: [
+        { role: 'system', content: 'Tu es un assistant juridique. Réponds en 2-3 phrases en français simple.' },
+        { role: 'user', content: `Contrat: ${contractContext.substring(0, 2000)}\n\nQuestion: ${question}` }
+      ],
+      temperature: 0.3,
+      max_tokens: 500
+    })
   });
   
-  if (error) {
-    console.error('Edge function error:', error);
-    throw new Error(error.message || 'Erreur lors de la requête');
+  if (!response.ok) {
+    throw new Error(`API Error: ${response.status}`);
   }
   
-  if (data.error) {
-    console.error('API error:', data.error);
-    throw new Error(data.error);
-  }
-  
-  return data.response;
+  const data = await response.json();
+  return data.choices[0].message.content;
 }
 
-// Extract text from file on client side
-export async function extractTextFromFile(file: File): Promise<string> {
-  const extension = file.name.split('.').pop()?.toLowerCase();
-  
-  switch (extension) {
-    case 'txt':
-      return file.text();
-    case 'pdf':
-      // For PDF, we'll read as base64 and send to edge function for extraction
-      return extractPDFViaEdgeFunction(file);
-    case 'png':
-    case 'jpg':
-    case 'jpeg':
-      return `[Image détectée: ${file.name}] - L'extraction OCR n'est pas encore implémentée. Veuillez utiliser un fichier PDF ou TXT.`;
-    default:
-      throw new Error(`Format non supporté: .${extension}. Utilisez PDF ou TXT.`);
-  }
-}
-
-async function extractPDFViaEdgeFunction(file: File): Promise<string> {
-  // Read file as base64
-  const arrayBuffer = await file.arrayBuffer();
-  const base64 = btoa(
-    new Uint8Array(arrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
-  );
-  
-  const { data, error } = await supabase.functions.invoke('extract-pdf', {
-    body: { pdfBase64: base64, fileName: file.name }
-  });
-  
-  if (error) {
-    console.error('PDF extraction error:', error);
-    throw new Error('Erreur lors de l\'extraction du PDF');
-  }
-  
-  if (data.error) {
-    throw new Error(data.error);
-  }
-  
-  return data.text;
-}
-
-// Mock function for development/testing
+// Fonction mock pour le développement
 export function mockAnalyzeContract(): Promise<ContractAnalysis> {
   return new Promise((resolve) => {
     setTimeout(() => {

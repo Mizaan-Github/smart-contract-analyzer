@@ -1,17 +1,16 @@
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { AppSidebar } from '@/components/AppSidebar';
 import { AppHeader } from '@/components/AppHeader';
 import { KanbanColumn } from '@/components/KanbanColumn';
 import { ContractCard } from '@/components/ContractCard';
 import { UploadZone } from '@/components/UploadZone';
+import { mockContracts } from '@/data/mockContracts';
 import { Contract } from '@/types/contracts';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { analyzeContract, extractTextFromFile } from '@/services/featherlessApi';
-import { useContracts } from '@/contexts/ContractsContext';
 
 export default function Dashboard() {
-  const { contracts, addContract, updateContract, setContractText } = useContracts();
+  const [contracts, setContracts] = useState<Contract[]>(mockContracts);
   const navigate = useNavigate();
 
   const { pending, analyzing, completed } = useMemo(() => ({
@@ -20,7 +19,7 @@ export default function Dashboard() {
     completed: contracts.filter(c => c.status === 'completed')
   }), [contracts]);
 
-  const handleFileSelect = async (file: File) => {
+  const handleFileSelect = (file: File) => {
     const newContract: Contract = {
       id: crypto.randomUUID(),
       name: file.name.replace(/\.[^/.]+$/, ''),
@@ -29,54 +28,35 @@ export default function Dashboard() {
       uploadedAt: new Date(),
       progress: 0
     };
-    
-    addContract(newContract);
-    toast.info('Extraction du texte en cours...');
-
-    // Start progress simulation
-    const progressInterval = startProgressSimulation(newContract.id);
-
-    try {
-      // Extract text from file
-      const text = await extractTextFromFile(file);
-      setContractText(newContract.id, text);
-      
-      updateContract(newContract.id, { progress: 40 });
-      toast.info('Analyse IA en cours...');
-      
-      // Analyze with AI
-      const analysis = await analyzeContract(text);
-      
-      clearInterval(progressInterval);
-      
-      // Update contract with analysis
-      updateContract(newContract.id, {
-        status: 'completed',
-        progress: 100,
-        analyzedAt: new Date(),
-        analysis
-      });
-      
-      toast.success('Analyse terminée !');
-      
-    } catch (error) {
-      console.error('Analysis error:', error);
-      clearInterval(progressInterval);
-      toast.error(error instanceof Error ? error.message : 'Erreur lors de l\'analyse');
-      
-      // Mark as pending on failure
-      updateContract(newContract.id, { status: 'pending', progress: 0 });
-    }
+    setContracts(prev => [...prev, newContract]);
+    toast.success('Contrat ajouté');
+    simulateAnalysis(newContract.id);
   };
 
-  const startProgressSimulation = (id: string) => {
-    let progress = 10;
-    return setInterval(() => {
-      progress += Math.random() * 8;
-      if (progress < 85) {
-        updateContract(id, { progress });
+  const simulateAnalysis = (id: string) => {
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += Math.random() * 18;
+      if (progress >= 100) {
+        clearInterval(interval);
+        setTimeout(() => {
+          setContracts(prev => prev.map(c => c.id === id ? {
+            ...c,
+            status: 'completed',
+            analyzedAt: new Date(),
+            analysis: {
+              score: Math.floor(Math.random() * 40) + 50,
+              verdict: ['SIGNER', 'NÉGOCIER', 'REFUSER'][Math.floor(Math.random() * 3)] as any,
+              type: 'CDI',
+              resume: 'Analyse terminée.',
+              clauses: [{ id: crypto.randomUUID(), texte: 'Clause exemple.', risque: 'MOYEN' as const, probleme: 'Attention.', conseil: 'Vérifiez.' }]
+            }
+          } : c));
+          toast.success('Analyse terminée');
+        }, 400);
       }
-    }, 600);
+      setContracts(prev => prev.map(c => c.id === id ? { ...c, progress: Math.min(progress, 100) } : c));
+    }, 280);
   };
 
   return (

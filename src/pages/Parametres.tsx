@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { AppSidebar } from '@/components/AppSidebar';
 import { AppHeader } from '@/components/AppHeader';
-import { useContracts } from '@/contexts/ContractsContext';
+import { mockContracts } from '@/data/mockContracts';
 import { 
   User, 
   Bell, 
@@ -32,7 +32,7 @@ const sections = [
 ];
 
 export default function Parametres() {
-  const { contracts } = useContracts();
+  const [contracts] = useState(mockContracts);
   const [activeSection, setActiveSection] = useState<SettingsSection>('profil');
 
   return (
