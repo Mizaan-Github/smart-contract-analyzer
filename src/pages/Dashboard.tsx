@@ -28,122 +28,59 @@ export default function Dashboard() {
       uploadedAt: new Date(),
       progress: 0
     };
-
     setContracts(prev => [...prev, newContract]);
-    toast.success('Contrat ajouté', {
-      description: 'L\'analyse va commencer...'
-    });
-
+    toast.success('Contrat ajouté');
     simulateAnalysis(newContract.id);
   };
 
-  const simulateAnalysis = (contractId: string) => {
+  const simulateAnalysis = (id: string) => {
     let progress = 0;
     const interval = setInterval(() => {
-      progress += Math.random() * 15;
+      progress += Math.random() * 18;
       if (progress >= 100) {
-        progress = 100;
         clearInterval(interval);
-        
         setTimeout(() => {
-          setContracts(prev => prev.map(c => {
-            if (c.id === contractId) {
-              return {
-                ...c,
-                status: 'completed',
-                analyzedAt: new Date(),
-                analysis: {
-                  score: Math.floor(Math.random() * 40) + 50,
-                  verdict: ['SIGNER', 'NÉGOCIER', 'REFUSER'][Math.floor(Math.random() * 3)] as Contract['analysis']['verdict'],
-                  type: 'CDI',
-                  resume: 'Analyse terminée avec succès.',
-                  clauses: [
-                    {
-                      id: crypto.randomUUID(),
-                      texte: 'Clause exemple détectée.',
-                      risque: ['ÉLEVÉ', 'MOYEN', 'FAIBLE'][Math.floor(Math.random() * 3)] as 'ÉLEVÉ' | 'MOYEN' | 'FAIBLE',
-                      probleme: 'Point d\'attention identifié.',
-                      conseil: 'Vérifiez ce point avant de signer.'
-                    }
-                  ]
-                }
-              };
+          setContracts(prev => prev.map(c => c.id === id ? {
+            ...c,
+            status: 'completed',
+            analyzedAt: new Date(),
+            analysis: {
+              score: Math.floor(Math.random() * 40) + 50,
+              verdict: ['SIGNER', 'NÉGOCIER', 'REFUSER'][Math.floor(Math.random() * 3)] as any,
+              type: 'CDI',
+              resume: 'Analyse terminée.',
+              clauses: [{ id: crypto.randomUUID(), texte: 'Clause exemple.', risque: 'MOYEN' as const, probleme: 'Attention.', conseil: 'Vérifiez.' }]
             }
-            return c;
-          }));
-          
-          toast.success('Analyse terminée', {
-            description: 'Cliquez pour voir les résultats.'
-          });
-        }, 500);
+          } : c));
+          toast.success('Analyse terminée');
+        }, 400);
       }
-
-      setContracts(prev => prev.map(c => 
-        c.id === contractId ? { ...c, progress } : c
-      ));
-    }, 300);
-  };
-
-  const handleContractClick = (contract: Contract) => {
-    if (contract.status === 'completed') {
-      navigate(`/contrat/${contract.id}`);
-    }
-  };
-
-  const handleNewContract = () => {
-    document.getElementById('file-upload')?.click();
+      setContracts(prev => prev.map(c => c.id === id ? { ...c, progress: Math.min(progress, 100) } : c));
+    }, 280);
   };
 
   return (
     <div className="flex min-h-screen w-full bg-background">
       <AppSidebar contracts={contracts} />
-      
       <div className="flex-1 flex flex-col min-h-screen">
-        <AppHeader 
-          title="Tableau de bord"
-          subtitle="Gérez et analysez vos contrats"
-          onNewContract={handleNewContract}
-        />
-        
-        <main className="flex-1 p-6 overflow-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-full max-w-7xl mx-auto">
-            {/* Colonne À analyser */}
+        <AppHeader title="Tableau de bord" onNewContract={() => document.getElementById('file-upload')?.click()} />
+        <main className="flex-1 p-5 overflow-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
             <KanbanColumn title="À analyser" count={pending.length + 1} color="todo">
               <UploadZone onFileSelect={handleFileSelect} />
-              {pending.map(contract => (
-                <ContractCard 
-                  key={contract.id} 
-                  contract={contract}
-                  onClick={() => handleContractClick(contract)}
-                />
-              ))}
+              {pending.map(c => <ContractCard key={c.id} contract={c} />)}
             </KanbanColumn>
 
-            {/* Colonne En cours */}
             <KanbanColumn title="En cours" count={analyzing.length} color="progress">
               {analyzing.length === 0 ? (
-                <div className="flex items-center justify-center h-40 text-muted-foreground text-sm rounded-2xl border-2 border-dashed border-muted">
-                  Aucune analyse en cours
+                <div className="flex items-center justify-center h-32 text-[12px] text-muted-foreground/60 rounded-2xl border border-dashed border-border/60">
+                  Aucune analyse
                 </div>
-              ) : (
-                analyzing.map(contract => (
-                  <ContractCard 
-                    key={contract.id} 
-                    contract={contract}
-                  />
-                ))
-              )}
+              ) : analyzing.map(c => <ContractCard key={c.id} contract={c} />)}
             </KanbanColumn>
 
-            {/* Colonne Analysés */}
             <KanbanColumn title="Analysés" count={completed.length} color="done">
-              {completed.map(contract => (
-                <ContractCard 
-                  key={contract.id} 
-                  contract={contract}
-                  onClick={() => handleContractClick(contract)}
-                />
-              ))}
+              {completed.map(c => <ContractCard key={c.id} contract={c} onClick={() => navigate(`/contrat/${c.id}`)} />)}
             </KanbanColumn>
           </div>
         </main>

@@ -10,18 +10,9 @@ interface KanbanColumnProps {
 }
 
 const colorConfig = {
-  todo: {
-    dot: 'bg-kanban-todo',
-    badge: 'bg-kanban-todo/10 text-kanban-todo'
-  },
-  progress: {
-    dot: 'bg-kanban-progress',
-    badge: 'bg-kanban-progress/10 text-kanban-progress'
-  },
-  done: {
-    dot: 'bg-kanban-done',
-    badge: 'bg-kanban-done/10 text-kanban-done'
-  }
+  todo: { dot: 'bg-kanban-todo', text: 'text-kanban-todo', bg: 'bg-kanban-todo/8' },
+  progress: { dot: 'bg-kanban-progress', text: 'text-kanban-progress', bg: 'bg-kanban-progress/8' },
+  done: { dot: 'bg-kanban-done', text: 'text-kanban-done', bg: 'bg-kanban-done/8' }
 };
 
 export function KanbanColumn({ title, count, color, children, className }: KanbanColumnProps) {
@@ -29,20 +20,15 @@ export function KanbanColumn({ title, count, color, children, className }: Kanba
   
   return (
     <div className={cn('flex flex-col min-h-0', className)}>
-      {/* Header */}
-      <div className="kanban-header mb-5">
+      <div className="col-header">
         <span className={cn('w-2 h-2 rounded-full', config.dot)} />
-        <span className="font-semibold text-sm text-foreground">{title}</span>
-        <span className={cn(
-          'ml-2 text-[11px] font-semibold px-2 py-0.5 rounded-md',
-          config.badge
-        )}>
+        <span className="text-[13px] font-semibold text-foreground">{title}</span>
+        <span className={cn('text-[10px] font-semibold px-1.5 py-0.5 rounded', config.bg, config.text)}>
           {count}
         </span>
       </div>
       
-      {/* Content */}
-      <div className="flex-1 space-y-3 overflow-auto scrollbar-thin pr-1 stagger-children">
+      <div className="flex-1 space-y-2.5 overflow-auto scroll-minimal pr-1 stagger">
         {children}
       </div>
     </div>

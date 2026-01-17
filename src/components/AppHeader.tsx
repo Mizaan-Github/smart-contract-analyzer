@@ -14,46 +14,40 @@ interface AppHeaderProps {
 export function AppHeader({ title, subtitle, showNewButton = true, onNewContract, className }: AppHeaderProps) {
   return (
     <header className={cn(
-      'h-16 bg-card/80 backdrop-blur-xl border-b border-border/50 px-6 flex items-center justify-between gap-6 sticky top-0 z-10',
+      'h-14 glass-clean px-5 flex items-center justify-between gap-6 sticky top-0 z-10',
       className
     )}>
-      {/* Titre */}
       <div>
-        <h1 className="text-lg font-semibold text-foreground tracking-tight">{title}</h1>
-        {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
+        <h1 className="text-[15px] font-semibold text-foreground">{title}</h1>
+        {subtitle && <p className="text-[11px] text-muted-foreground/70">{subtitle}</p>}
       </div>
 
-      {/* Actions */}
-      <div className="flex items-center gap-3">
-        {/* Barre de recherche */}
+      <div className="flex items-center gap-2.5">
         <div className="relative hidden md:block">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/50" />
           <Input
             placeholder="Rechercher..."
-            className="w-56 pl-10 h-9 input-refined text-sm"
+            className="w-48 h-8 pl-8 input-clean text-[12px]"
           />
         </div>
 
-        {/* Bouton nouveau contrat */}
         {showNewButton && (
           <Button 
             onClick={onNewContract} 
-            className="gap-2 btn-gradient text-white border-0 h-9 px-4 rounded-xl shadow-md hover:shadow-lg transition-shadow"
+            className="h-8 px-3 gap-1.5 gradient-primary text-white border-0 rounded-lg text-[12px] font-medium shadow-sm hover:shadow-md transition-shadow"
           >
-            <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline text-sm font-medium">Nouveau</span>
+            <Plus className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Nouveau</span>
           </Button>
         )}
 
-        {/* Notifications */}
-        <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-xl hover:bg-muted/50">
-          <Bell className="w-[18px] h-[18px] text-muted-foreground" />
-          <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-primary rounded-full ring-2 ring-card" />
-        </Button>
+        <button className="relative w-8 h-8 rounded-lg flex items-center justify-center hover:bg-muted/50 transition-colors">
+          <Bell className="w-4 h-4 text-muted-foreground" />
+          <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-primary rounded-full" />
+        </button>
 
-        {/* Avatar */}
-        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center ring-1 ring-primary/10 cursor-pointer hover:ring-primary/20 transition-all">
-          <span className="text-sm font-semibold text-primary">JD</span>
+        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center cursor-pointer hover:bg-primary/15 transition-colors">
+          <span className="text-[11px] font-semibold text-primary">JD</span>
         </div>
       </div>
     </header>
