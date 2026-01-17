@@ -1,15 +1,15 @@
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { AppSidebar } from '@/components/AppSidebar';
 import { AppHeader } from '@/components/AppHeader';
-import { mockContracts } from '@/data/mockContracts';
 import { Contract } from '@/types/contracts';
 import { useNavigate } from 'react-router-dom';
 import { VerdictBadge } from '@/components/VerdictBadge';
 import { ScoreCircle } from '@/components/ScoreCircle';
-import { FileText, Calendar, Clock, ChevronRight, Trash2 } from 'lucide-react';
+import { FileText, Calendar, Clock, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, isToday, isYesterday, isThisWeek, isThisMonth } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { useContracts } from '@/contexts/ContractsContext';
 
 type TimeGroup = 'today' | 'yesterday' | 'week' | 'month' | 'older';
 
@@ -30,7 +30,7 @@ const groupLabels: Record<TimeGroup, string> = {
 };
 
 export default function Historique() {
-  const [contracts] = useState<Contract[]>(mockContracts);
+  const { contracts } = useContracts();
   const navigate = useNavigate();
 
   const allContracts = useMemo(() => 

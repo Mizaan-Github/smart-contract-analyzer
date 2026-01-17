@@ -1,18 +1,18 @@
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { AppSidebar } from '@/components/AppSidebar';
 import { AppHeader } from '@/components/AppHeader';
-import { mockContracts } from '@/data/mockContracts';
 import { Contract } from '@/types/contracts';
 import { useNavigate } from 'react-router-dom';
 import { VerdictBadge } from '@/components/VerdictBadge';
 import { ScoreCircle } from '@/components/ScoreCircle';
-import { FileText, Calendar, AlertTriangle, Search, Filter, LayoutGrid, List } from 'lucide-react';
+import { FileText, AlertTriangle, Search, LayoutGrid, List } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { useContracts } from '@/contexts/ContractsContext';
 
 export default function Analyses() {
-  const [contracts] = useState<Contract[]>(mockContracts);
+  const { contracts } = useContracts();
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [filterVerdict, setFilterVerdict] = useState<string | null>(null);

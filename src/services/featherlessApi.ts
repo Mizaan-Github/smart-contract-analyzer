@@ -1,79 +1,106 @@
 import { ContractAnalysis } from '@/types/contracts';
-
-const API_URL = 'https://api.featherless.ai/v1/chat/completions';
-// NOTE: Cette clé doit être remplacée par votre vraie clé API
-const API_KEY = 'REMPLACER_PAR_MA_CLE';
+import { supabase } from '@/integrations/supabase/client';
 
 export async function analyzeContract(contractText: string): Promise<ContractAnalysis> {
-  const response = await fetch(API_URL, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${API_KEY}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      model: 'Qwen/Qwen3-32B',
-      messages: [
-        {
-          role: 'system',
-          content: `Tu es un expert juridique français. Analyse ce contrat et retourne UNIQUEMENT du JSON :
-{
-  "score": <0-100>,
-  "verdict": "<SIGNER|NÉGOCIER|REFUSER>",
-  "type": "<CDI|CDD|Bail|Assurance|Autre>",
-  "resume": "<2 phrases>",
-  "clauses": [
-    {
-      "texte": "<extrait>",
-      "risque": "<ÉLEVÉ|MOYEN|FAIBLE>",
-      "probleme": "<explication simple>",
-      "conseil": "<action recommandée>"
-    }
-  ]
-}`
-        },
-        { role: 'user', content: contractText }
-      ],
-      temperature: 0.1,
-      max_tokens: 3000
-    })
+  console.log('Calling analyze-contract edge function...');
+  
+  const { data, error } = await supabase.functions.invoke('analyze-contract', {
+    body: { contractText }
   });
   
-  if (!response.ok) {
-    throw new Error(`API Error: ${response.status}`);
+  if (error) {
+    console.error('Edge function error:', error);
+    throw new Error(error.message || 'Erreur lors de l\'analyse');
   }
   
-  const data = await response.json();
-  return JSON.parse(data.choices[0].message.content);
+  if (data.error) {
+    console.error('API error:', data.error);
+    throw new Error(data.error);
+  }
+  
+  // Add IDs to clauses
+  const analysis: ContractAnalysis = {
+    ...data,
+    clauses: (data.clauses || []).map((clause: any) => ({
+      ...clause,
+      id: crypto.randomUUID()
+    }))
+  };
+  
+  return analysis;
 }
 
 export async function askQuestion(question: string, contractContext: string): Promise<string> {
-  const response = await fetch(API_URL, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${API_KEY}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      model: 'Qwen/Qwen3-8B',
-      messages: [
-        { role: 'system', content: 'Tu es un assistant juridique. Réponds en 2-3 phrases en français simple.' },
-        { role: 'user', content: `Contrat: ${contractContext.substring(0, 2000)}\n\nQuestion: ${question}` }
-      ],
-      temperature: 0.3,
-      max_tokens: 500
-    })
+  console.log('Calling chat-contract edge function...');
+  
+  const { data, error } = await supabase.functions.invoke('chat-contract', {
+    body: { question, contractContext }
   });
   
-  if (!response.ok) {
-    throw new Error(`API Error: ${response.status}`);
+  if (error) {
+    console.error('Edge function error:', error);
+    throw new Error(error.message || 'Erreur lors de la requête');
   }
   
-  const data = await response.json();
-  return data.choices[0].message.content;
+  if (data.error) {
+    console.error('API error:', data.error);
+    throw new Error(data.error);
+  }
+  
+  return data.response;
 }
 
-// Fonction mock pour le développement
+// Extract text from PDF using pdfjs-dist
+export async function extractTextFromPDF(file: File): Promise<string> {
+  const pdfjsLib = await import('pdfjs-dist');
+  
+  // Set worker source
+  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+  
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  
+  let fullText = '';
+  
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const textContent = await page.getTextContent();
+    const pageText = textContent.items
+      .map((item: any) => item.str)
+      .join(' ');
+    fullText += pageText + '\n\n';
+  }
+  
+  return fullText.trim();
+}
+
+// Extract text from image using OCR (placeholder - would need real OCR service)
+export async function extractTextFromImage(file: File): Promise<string> {
+  // For now, return a message indicating image support needs OCR
+  // In production, you'd integrate with Tesseract.js or a cloud OCR service
+  console.log('Image file detected:', file.name);
+  return `[Image détectée: ${file.name}] - L'extraction OCR n'est pas encore implémentée. Veuillez utiliser un fichier PDF ou TXT.`;
+}
+
+// Main function to extract text from any supported file
+export async function extractTextFromFile(file: File): Promise<string> {
+  const extension = file.name.split('.').pop()?.toLowerCase();
+  
+  switch (extension) {
+    case 'pdf':
+      return extractTextFromPDF(file);
+    case 'txt':
+      return file.text();
+    case 'png':
+    case 'jpg':
+    case 'jpeg':
+      return extractTextFromImage(file);
+    default:
+      throw new Error(`Format non supporté: .${extension}`);
+  }
+}
+
+// Mock function for development/testing
 export function mockAnalyzeContract(): Promise<ContractAnalysis> {
   return new Promise((resolve) => {
     setTimeout(() => {
