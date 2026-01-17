@@ -34,7 +34,6 @@ export default function Dashboard() {
       description: 'L\'analyse va commencer...'
     });
 
-    // Simulation de l'analyse
     simulateAnalysis(newContract.id);
   };
 
@@ -46,7 +45,6 @@ export default function Dashboard() {
         progress = 100;
         clearInterval(interval);
         
-        // Compléter l'analyse
         setTimeout(() => {
           setContracts(prev => prev.map(c => {
             if (c.id === contractId) {
@@ -74,8 +72,8 @@ export default function Dashboard() {
             return c;
           }));
           
-          toast.success('Analyse terminée !', {
-            description: 'Cliquez sur le contrat pour voir les résultats.'
+          toast.success('Analyse terminée', {
+            description: 'Cliquez pour voir les résultats.'
           });
         }, 500);
       }
@@ -102,12 +100,13 @@ export default function Dashboard() {
       
       <div className="flex-1 flex flex-col min-h-screen">
         <AppHeader 
-          title="Tableau de bord" 
+          title="Tableau de bord"
+          subtitle="Gérez et analysez vos contrats"
           onNewContract={handleNewContract}
         />
         
         <main className="flex-1 p-6 overflow-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-full max-w-7xl mx-auto">
             {/* Colonne À analyser */}
             <KanbanColumn title="À analyser" count={pending.length + 1} color="todo">
               <UploadZone onFileSelect={handleFileSelect} />
@@ -123,7 +122,7 @@ export default function Dashboard() {
             {/* Colonne En cours */}
             <KanbanColumn title="En cours" count={analyzing.length} color="progress">
               {analyzing.length === 0 ? (
-                <div className="flex items-center justify-center h-32 text-muted-foreground text-sm">
+                <div className="flex items-center justify-center h-40 text-muted-foreground text-sm rounded-2xl border-2 border-dashed border-muted">
                   Aucune analyse en cours
                 </div>
               ) : (

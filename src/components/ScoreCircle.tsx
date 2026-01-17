@@ -9,9 +9,9 @@ interface ScoreCircleProps {
 }
 
 const sizeConfig = {
-  sm: { width: 48, strokeWidth: 4, fontSize: 'text-sm' },
-  md: { width: 80, strokeWidth: 6, fontSize: 'text-xl' },
-  lg: { width: 120, strokeWidth: 8, fontSize: 'text-3xl' }
+  sm: { width: 44, strokeWidth: 3.5, fontSize: 'text-xs', fontWeight: 'font-bold' },
+  md: { width: 90, strokeWidth: 5, fontSize: 'text-2xl', fontWeight: 'font-bold' },
+  lg: { width: 130, strokeWidth: 6, fontSize: 'text-4xl', fontWeight: 'font-bold' }
 };
 
 export function ScoreCircle({ score, size = 'md', className, animated = true }: ScoreCircleProps) {
@@ -20,20 +20,29 @@ export function ScoreCircle({ score, size = 'md', className, animated = true }: 
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (score / 100) * circumference;
   
-  const color = useMemo(() => {
+  const colorClass = useMemo(() => {
     if (score >= 70) return 'stroke-success';
     if (score >= 50) return 'stroke-warning';
     return 'stroke-danger';
   }, [score]);
 
-  const bgColor = useMemo(() => {
+  const textColorClass = useMemo(() => {
     if (score >= 70) return 'text-success';
     if (score >= 50) return 'text-warning';
     return 'text-danger';
   }, [score]);
 
+  const glowClass = useMemo(() => {
+    if (score >= 70) return 'score-glow-success';
+    if (score >= 50) return 'score-glow-warning';
+    return 'score-glow-danger';
+  }, [score]);
+
   return (
-    <div className={cn('score-circle', className)} style={{ width: config.width, height: config.width }}>
+    <div 
+      className={cn('relative flex items-center justify-center', glowClass, className)} 
+      style={{ width: config.width, height: config.width }}
+    >
       <svg
         width={config.width}
         height={config.width}
@@ -48,7 +57,7 @@ export function ScoreCircle({ score, size = 'md', className, animated = true }: 
           fill="none"
           stroke="currentColor"
           strokeWidth={config.strokeWidth}
-          className="text-muted/30"
+          className="text-muted/20"
         />
         {/* Progress circle */}
         <circle
@@ -58,18 +67,18 @@ export function ScoreCircle({ score, size = 'md', className, animated = true }: 
           fill="none"
           strokeWidth={config.strokeWidth}
           strokeLinecap="round"
-          className={cn(color, animated && 'animate-score-fill')}
+          className={cn(colorClass, 'transition-all duration-1000 ease-out')}
           style={{
             strokeDasharray: circumference,
-            strokeDashoffset: animated ? undefined : offset,
-            ['--score-offset' as string]: offset
+            strokeDashoffset: animated ? offset : offset,
           }}
         />
       </svg>
       <div className={cn(
-        'absolute inset-0 flex items-center justify-center font-bold',
+        'absolute inset-0 flex items-center justify-center',
         config.fontSize,
-        bgColor
+        config.fontWeight,
+        textColorClass
       )}>
         {score}
       </div>
