@@ -55,7 +55,7 @@ Règles :
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'Qwen/Qwen3-8B',
+        model: 'Qwen/Qwen2.5-7B-Instruct',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userMessage }
