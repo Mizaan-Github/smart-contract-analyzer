@@ -139,7 +139,11 @@ export default function ContractResults() {
         </main>
 
         <aside className="w-[340px] border-l border-border/40 p-4 hidden lg:block bg-muted/10">
-          <AIChat contractName={contract.name} className="h-[calc(100vh-5rem)]" />
+          <AIChat 
+            contractName={contract.name} 
+            contractContent={contract.content} 
+            className="h-[calc(100vh-5rem)]" 
+          />
         </aside>
       </div>
     </div>

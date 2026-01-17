@@ -4,13 +4,15 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Send, Bot, User, Sparkles } from 'lucide-react';
 import { Message } from '@/types/contracts';
+import { askQuestion } from '@/services/contractApi';
 
 interface AIChatProps {
   contractName: string;
+  contractContent?: string;
   className?: string;
 }
 
-export function AIChat({ contractName, className }: AIChatProps) {
+export function AIChat({ contractName, contractContent = '', className }: AIChatProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -33,19 +35,32 @@ export function AIChat({ contractName, className }: AIChatProps) {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const question = input;
     setInput('');
     setIsLoading(true);
 
-    setTimeout(() => {
+    try {
+      const answer = await askQuestion(question, contractContent);
+      
       const aiResponse: Message = {
         id: crypto.randomUUID(),
         role: 'assistant',
-        content: getAIResponse(input),
+        content: answer,
         timestamp: new Date()
       };
       setMessages(prev => [...prev, aiResponse]);
+    } catch (error) {
+      console.error('Chat error:', error);
+      const fallbackResponse: Message = {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content: getLocalResponse(question),
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, fallbackResponse]);
+    } finally {
       setIsLoading(false);
-    }, 1200);
+    }
   };
 
   return (
@@ -123,7 +138,7 @@ export function AIChat({ contractName, className }: AIChatProps) {
   );
 }
 
-function getAIResponse(q: string): string {
+function getLocalResponse(q: string): string {
   const question = q.toLowerCase();
   if (question.includes('concurrence')) return "La clause de non-concurrence (24 mois, national) est excessive. Négociez 12 mois sur périmètre régional.";
   if (question.includes('préavis')) return "Préavis standard de 3 mois. Négociable avec accord mutuel.";
