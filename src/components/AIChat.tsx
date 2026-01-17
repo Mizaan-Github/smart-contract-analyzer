@@ -15,7 +15,7 @@ export function AIChat({ contractName, className }: AIChatProps) {
     {
       id: '1',
       role: 'assistant',
-      content: `Bonjour ! Je suis votre assistant juridique. Posez-moi vos questions sur "${contractName}".`,
+      content: `Bonjour ! Posez-moi vos questions sur "${contractName}".`,
       timestamp: new Date()
     }
   ]);
@@ -45,90 +45,77 @@ export function AIChat({ contractName, className }: AIChatProps) {
       };
       setMessages(prev => [...prev, aiResponse]);
       setIsLoading(false);
-    }, 1500);
+    }, 1200);
   };
 
   return (
-    <div className={cn('flex flex-col h-full glass rounded-2xl overflow-hidden', className)}>
-      {/* Header */}
-      <div className="p-4 border-b border-border/50">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl btn-gradient flex items-center justify-center">
+    <div className={cn('flex flex-col h-full glass-clean rounded-2xl overflow-hidden', className)}>
+      <div className="p-4 border-b border-border/30">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
             <Sparkles className="w-4 h-4 text-white" />
           </div>
           <div>
-            <h3 className="font-semibold text-sm text-foreground">Assistant IA</h3>
-            <p className="text-[11px] text-muted-foreground">Posez vos questions</p>
+            <h3 className="text-[13px] font-semibold text-foreground">Assistant IA</h3>
+            <p className="text-[10px] text-muted-foreground/70">Posez vos questions</p>
           </div>
         </div>
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-auto p-4 space-y-4 scrollbar-thin">
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={cn(
-              'flex gap-3',
-              message.role === 'user' && 'flex-row-reverse'
-            )}
-          >
+      <div className="flex-1 overflow-auto p-4 space-y-3 scroll-minimal">
+        {messages.map((msg) => (
+          <div key={msg.id} className={cn('flex gap-2.5', msg.role === 'user' && 'flex-row-reverse')}>
             <div className={cn(
-              'w-7 h-7 rounded-lg flex items-center justify-center shrink-0',
-              message.role === 'assistant' 
-                ? 'bg-gradient-to-br from-primary/20 to-primary/10' 
-                : 'bg-muted'
+              'w-6 h-6 rounded-md flex items-center justify-center shrink-0',
+              msg.role === 'assistant' ? 'bg-primary/10' : 'bg-muted/60'
             )}>
-              {message.role === 'assistant' ? (
-                <Bot className="w-3.5 h-3.5 text-primary" />
+              {msg.role === 'assistant' ? (
+                <Bot className="w-3 h-3 text-primary" />
               ) : (
-                <User className="w-3.5 h-3.5 text-muted-foreground" />
+                <User className="w-3 h-3 text-muted-foreground" />
               )}
             </div>
             <div className={cn(
-              'max-w-[85%] rounded-2xl px-4 py-2.5',
-              message.role === 'assistant' 
-                ? 'bg-muted/50 text-foreground' 
-                : 'btn-gradient text-white'
+              'max-w-[85%] rounded-xl px-3 py-2',
+              msg.role === 'assistant' ? 'bg-muted/40' : 'gradient-primary text-white'
             )}>
-              <p className="text-[13px] leading-relaxed">{message.content}</p>
+              <p className="text-[12px] leading-relaxed">{msg.content}</p>
             </div>
           </div>
         ))}
         
         {isLoading && (
-          <div className="flex gap-3">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-              <Bot className="w-3.5 h-3.5 text-primary" />
+          <div className="flex gap-2.5">
+            <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center">
+              <Bot className="w-3 h-3 text-primary" />
             </div>
-            <div className="bg-muted/50 rounded-2xl px-4 py-3">
-              <div className="flex gap-1.5">
-                <span className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce" />
-                <span className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce [animation-delay:0.15s]" />
-                <span className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce [animation-delay:0.3s]" />
+            <div className="bg-muted/40 rounded-xl px-3 py-2.5">
+              <div className="flex gap-1">
+                <span className="w-1 h-1 bg-primary/50 rounded-full animate-bounce" />
+                <span className="w-1 h-1 bg-primary/50 rounded-full animate-bounce [animation-delay:0.1s]" />
+                <span className="w-1 h-1 bg-primary/50 rounded-full animate-bounce [animation-delay:0.2s]" />
               </div>
             </div>
           </div>
         )}
       </div>
 
-      {/* Input */}
-      <div className="p-4 border-t border-border/50">
+      <div className="p-3 border-t border-border/30">
         <div className="flex gap-2">
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            placeholder="Posez une question..."
-            className="flex-1 input-refined h-10 text-sm"
+            placeholder="Votre question..."
+            className="flex-1 h-9 input-clean text-[12px]"
           />
           <Button 
             onClick={handleSend} 
             disabled={!input.trim() || isLoading}
             size="icon"
-            className="btn-gradient text-white border-0 h-10 w-10 rounded-xl shrink-0"
+            className="w-9 h-9 gradient-primary text-white border-0 rounded-lg shrink-0"
           >
-            <Send className="w-4 h-4" />
+            <Send className="w-3.5 h-3.5" />
           </Button>
         </div>
       </div>
@@ -136,20 +123,10 @@ export function AIChat({ contractName, className }: AIChatProps) {
   );
 }
 
-function getAIResponse(question: string): string {
-  const q = question.toLowerCase();
-  
-  if (q.includes('non-concurrence') || q.includes('concurrence')) {
-    return "La clause de non-concurrence a une durée de 24 mois sur tout le territoire national. C'est excessif. Je recommande de négocier à 12 mois avec un périmètre régional.";
-  }
-  
-  if (q.includes('préavis') || q.includes('démission')) {
-    return "Le préavis standard est de 3 mois. Vous pouvez négocier une réduction ou une dispense partielle avec accord mutuel.";
-  }
-  
-  if (q.includes('salaire') || q.includes('rémunération')) {
-    return "La rémunération est dans la moyenne du marché. Vérifiez les modalités de révision salariale et les éventuels bonus mentionnés.";
-  }
-  
-  return "D'après mon analyse, je vous recommande de vérifier les clauses liées à ce sujet. N'hésitez pas à demander des précisions écrites avant de signer.";
+function getAIResponse(q: string): string {
+  const question = q.toLowerCase();
+  if (question.includes('concurrence')) return "La clause de non-concurrence (24 mois, national) est excessive. Négociez 12 mois sur périmètre régional.";
+  if (question.includes('préavis')) return "Préavis standard de 3 mois. Négociable avec accord mutuel.";
+  if (question.includes('salaire')) return "Rémunération dans la moyenne. Vérifiez révision et bonus.";
+  return "Je recommande de vérifier ce point avec attention avant signature.";
 }
