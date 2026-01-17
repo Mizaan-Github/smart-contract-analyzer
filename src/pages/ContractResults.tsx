@@ -1,5 +1,4 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { mockContracts } from '@/data/mockContracts';
 import { Button } from '@/components/ui/button';
 import { VerdictBadge } from '@/components/VerdictBadge';
 import { RiskBadge } from '@/components/RiskBadge';
@@ -10,13 +9,16 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { useContracts } from '@/contexts/ContractsContext';
 
 export default function ContractResults() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [expanded, setExpanded] = useState<string | null>(null);
   
-  const contract = mockContracts.find(c => c.id === id);
+  const { getContract, getContractText } = useContracts();
+  const contract = getContract(id || '');
+  const contractText = getContractText(id || '');
 
   if (!contract || !contract.analysis) {
     return (
@@ -139,7 +141,11 @@ export default function ContractResults() {
         </main>
 
         <aside className="w-[340px] border-l border-border/40 p-4 hidden lg:block bg-muted/10">
-          <AIChat contractName={contract.name} className="h-[calc(100vh-5rem)]" />
+          <AIChat 
+            contractName={contract.name} 
+            contractContext={contractText}
+            className="h-[calc(100vh-5rem)]" 
+          />
         </aside>
       </div>
     </div>

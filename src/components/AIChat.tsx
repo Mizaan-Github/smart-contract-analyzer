@@ -2,15 +2,17 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Send, Bot, User, Sparkles } from 'lucide-react';
+import { Send, Bot, User, Sparkles, AlertCircle } from 'lucide-react';
 import { Message } from '@/types/contracts';
+import { askQuestion } from '@/services/featherlessApi';
 
 interface AIChatProps {
   contractName: string;
+  contractContext?: string;
   className?: string;
 }
 
-export function AIChat({ contractName, className }: AIChatProps) {
+export function AIChat({ contractName, contractContext, className }: AIChatProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -21,6 +23,7 @@ export function AIChat({ contractName, className }: AIChatProps) {
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
@@ -35,17 +38,33 @@ export function AIChat({ contractName, className }: AIChatProps) {
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
+    setError(null);
 
-    setTimeout(() => {
+    try {
+      const response = await askQuestion(input, contractContext || '');
+      
       const aiResponse: Message = {
         id: crypto.randomUUID(),
         role: 'assistant',
-        content: getAIResponse(input),
+        content: response,
         timestamp: new Date()
       };
       setMessages(prev => [...prev, aiResponse]);
+    } catch (err) {
+      console.error('Chat error:', err);
+      setError(err instanceof Error ? err.message : 'Erreur de connexion');
+      
+      // Add error message to chat
+      const errorMessage: Message = {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content: 'Désolé, une erreur est survenue. Veuillez réessayer.',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
       setIsLoading(false);
-    }, 1200);
+    }
   };
 
   return (
@@ -98,6 +117,13 @@ export function AIChat({ contractName, className }: AIChatProps) {
             </div>
           </div>
         )}
+
+        {error && (
+          <div className="flex items-center gap-2 text-[11px] text-danger p-2 bg-danger/10 rounded-lg">
+            <AlertCircle className="w-3 h-3" />
+            <span>{error}</span>
+          </div>
+        )}
       </div>
 
       <div className="p-3 border-t border-border/30">
@@ -121,12 +147,4 @@ export function AIChat({ contractName, className }: AIChatProps) {
       </div>
     </div>
   );
-}
-
-function getAIResponse(q: string): string {
-  const question = q.toLowerCase();
-  if (question.includes('concurrence')) return "La clause de non-concurrence (24 mois, national) est excessive. Négociez 12 mois sur périmètre régional.";
-  if (question.includes('préavis')) return "Préavis standard de 3 mois. Négociable avec accord mutuel.";
-  if (question.includes('salaire')) return "Rémunération dans la moyenne. Vérifiez révision et bonus.";
-  return "Je recommande de vérifier ce point avec attention avant signature.";
 }
