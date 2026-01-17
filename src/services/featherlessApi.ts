@@ -50,54 +50,46 @@ export async function askQuestion(question: string, contractContext: string): Pr
   return data.response;
 }
 
-// Extract text from PDF using pdfjs-dist
-export async function extractTextFromPDF(file: File): Promise<string> {
-  const pdfjsLib = await import('pdfjs-dist');
-  
-  // Set worker source
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
-  
-  const arrayBuffer = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-  
-  let fullText = '';
-  
-  for (let i = 1; i <= pdf.numPages; i++) {
-    const page = await pdf.getPage(i);
-    const textContent = await page.getTextContent();
-    const pageText = textContent.items
-      .map((item: any) => item.str)
-      .join(' ');
-    fullText += pageText + '\n\n';
-  }
-  
-  return fullText.trim();
-}
-
-// Extract text from image using OCR (placeholder - would need real OCR service)
-export async function extractTextFromImage(file: File): Promise<string> {
-  // For now, return a message indicating image support needs OCR
-  // In production, you'd integrate with Tesseract.js or a cloud OCR service
-  console.log('Image file detected:', file.name);
-  return `[Image détectée: ${file.name}] - L'extraction OCR n'est pas encore implémentée. Veuillez utiliser un fichier PDF ou TXT.`;
-}
-
-// Main function to extract text from any supported file
+// Extract text from file on client side
 export async function extractTextFromFile(file: File): Promise<string> {
   const extension = file.name.split('.').pop()?.toLowerCase();
   
   switch (extension) {
-    case 'pdf':
-      return extractTextFromPDF(file);
     case 'txt':
       return file.text();
+    case 'pdf':
+      // For PDF, we'll read as base64 and send to edge function for extraction
+      return extractPDFViaEdgeFunction(file);
     case 'png':
     case 'jpg':
     case 'jpeg':
-      return extractTextFromImage(file);
+      return `[Image détectée: ${file.name}] - L'extraction OCR n'est pas encore implémentée. Veuillez utiliser un fichier PDF ou TXT.`;
     default:
-      throw new Error(`Format non supporté: .${extension}`);
+      throw new Error(`Format non supporté: .${extension}. Utilisez PDF ou TXT.`);
   }
+}
+
+async function extractPDFViaEdgeFunction(file: File): Promise<string> {
+  // Read file as base64
+  const arrayBuffer = await file.arrayBuffer();
+  const base64 = btoa(
+    new Uint8Array(arrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
+  );
+  
+  const { data, error } = await supabase.functions.invoke('extract-pdf', {
+    body: { pdfBase64: base64, fileName: file.name }
+  });
+  
+  if (error) {
+    console.error('PDF extraction error:', error);
+    throw new Error('Erreur lors de l\'extraction du PDF');
+  }
+  
+  if (data.error) {
+    throw new Error(data.error);
+  }
+  
+  return data.text;
 }
 
 // Mock function for development/testing
