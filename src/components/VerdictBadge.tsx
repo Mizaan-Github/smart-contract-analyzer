@@ -12,38 +12,34 @@ const verdictConfig: Record<Verdict, {
   bg: string; 
   text: string; 
   icon: typeof Check;
-  label: string;
 }> = {
   'SIGNER': { 
-    bg: 'bg-success', 
-    text: 'text-success-foreground', 
+    bg: 'bg-success/10', 
+    text: 'text-success', 
     icon: Check,
-    label: 'Signer' 
   },
   'NÉGOCIER': { 
-    bg: 'bg-warning', 
-    text: 'text-warning-foreground', 
+    bg: 'bg-warning/10', 
+    text: 'text-warning', 
     icon: AlertTriangle,
-    label: 'Négocier' 
   },
   'REFUSER': { 
-    bg: 'bg-danger', 
-    text: 'text-danger-foreground', 
+    bg: 'bg-danger/10', 
+    text: 'text-danger', 
     icon: X,
-    label: 'Refuser' 
   }
 };
 
 const sizeClasses = {
-  sm: 'px-2 py-0.5 text-xs gap-1',
-  md: 'px-3 py-1 text-sm gap-1.5',
-  lg: 'px-4 py-2 text-base gap-2'
+  sm: 'px-2.5 py-1 text-[10px] gap-1',
+  md: 'px-3 py-1.5 text-xs gap-1.5',
+  lg: 'px-4 py-2 text-sm gap-2'
 };
 
 const iconSizes = {
-  sm: 12,
-  md: 14,
-  lg: 18
+  sm: 10,
+  md: 12,
+  lg: 16
 };
 
 export function VerdictBadge({ verdict, size = 'md', className }: VerdictBadgeProps) {
@@ -52,13 +48,13 @@ export function VerdictBadge({ verdict, size = 'md', className }: VerdictBadgePr
   
   return (
     <span className={cn(
-      'inline-flex items-center rounded-full font-semibold',
+      'inline-flex items-center rounded-lg font-semibold uppercase tracking-wide',
       config.bg,
       config.text,
       sizeClasses[size],
       className
     )}>
-      <Icon size={iconSizes[size]} />
+      <Icon size={iconSizes[size]} strokeWidth={2.5} />
       {verdict}
     </span>
   );

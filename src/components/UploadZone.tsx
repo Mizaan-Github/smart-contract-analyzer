@@ -52,8 +52,8 @@ export function UploadZone({ onFileSelect, className }: UploadZoneProps) {
       onDragOver={handleDrag}
       onDrop={handleDrop}
       className={cn(
-        'upload-zone cursor-pointer',
-        isDragging ? 'border-primary bg-primary/5' : 'border-muted-foreground/30',
+        'upload-zone cursor-pointer group',
+        isDragging && 'dragging',
         className
       )}
     >
@@ -64,28 +64,30 @@ export function UploadZone({ onFileSelect, className }: UploadZoneProps) {
         className="hidden"
         id="file-upload"
       />
-      <label htmlFor="file-upload" className="cursor-pointer flex flex-col items-center gap-4">
+      <label htmlFor="file-upload" className="cursor-pointer flex flex-col items-center gap-5">
         <div className={cn(
-          'w-16 h-16 rounded-full flex items-center justify-center transition-colors',
-          isDragging ? 'bg-primary/20' : 'bg-muted'
+          'w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300',
+          isDragging 
+            ? 'bg-primary/15 scale-110' 
+            : 'bg-muted group-hover:bg-primary/10 group-hover:scale-105'
         )}>
           {isDragging ? (
-            <FileText className="w-8 h-8 text-primary" />
+            <FileText className="w-6 h-6 text-primary" />
           ) : (
-            <Upload className="w-8 h-8 text-muted-foreground" />
+            <Upload className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
           )}
         </div>
-        <div className="space-y-1">
-          <p className="font-medium text-foreground">
-            {isDragging ? 'Déposez votre fichier ici' : 'Glissez votre contrat ici'}
+        <div className="space-y-1.5 text-center">
+          <p className="font-medium text-sm text-foreground">
+            {isDragging ? 'Déposez votre fichier' : 'Glissez votre contrat ici'}
           </p>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             ou cliquez pour parcourir
           </p>
         </div>
-        <p className="text-xs text-muted-foreground">
+        <div className="chip">
           PDF, Word, Image • Max 10 MB
-        </p>
+        </div>
       </label>
     </div>
   );

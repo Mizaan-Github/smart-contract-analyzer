@@ -6,10 +6,10 @@ interface RiskBadgeProps {
   className?: string;
 }
 
-const riskConfig: Record<RiskLevel, { bg: string; text: string; label: string }> = {
-  'ÉLEVÉ': { bg: 'bg-danger/10', text: 'text-danger', label: 'Risque élevé' },
-  'MOYEN': { bg: 'bg-warning/10', text: 'text-warning', label: 'Risque moyen' },
-  'FAIBLE': { bg: 'bg-success/10', text: 'text-success', label: 'Risque faible' }
+const riskConfig: Record<RiskLevel, { bg: string; text: string }> = {
+  'ÉLEVÉ': { bg: 'bg-danger/10', text: 'text-danger' },
+  'MOYEN': { bg: 'bg-warning/10', text: 'text-warning' },
+  'FAIBLE': { bg: 'bg-success/10', text: 'text-success' }
 };
 
 export function RiskBadge({ level, className }: RiskBadgeProps) {
