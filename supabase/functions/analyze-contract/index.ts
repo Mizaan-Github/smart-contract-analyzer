@@ -65,7 +65,7 @@ Règles d'analyse :
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'Qwen/Qwen3-32B',
+        model: 'Qwen/Qwen2.5-72B-Instruct',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: contractText.substring(0, 15000) } // Limit text length
