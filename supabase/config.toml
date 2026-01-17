@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.chat-contract]
 verify_jwt = false
+
+[functions.extract-pdf]
+verify_jwt = false
